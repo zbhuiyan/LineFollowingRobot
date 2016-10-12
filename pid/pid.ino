@@ -55,10 +55,12 @@ void loop() {
   
   if(millis() - counter >= SAMPLING_RATE) {
     err = analogRead(reflectancePin) - REF;
-    pid = updatePID(err);
+    //pid = updatePID(err);
     scaleSpeeds();
     left->setSpeed(BASE_SPEED * leftSpeed);
     right->setSpeed(BASE_SPEED * rightSpeed);
+    Serial.println(leftSpeed);
+    Serial.println(rightSpeed);
   }
 }
 
@@ -100,8 +102,10 @@ void calcDerivative(double pos) {
 void scaleSpeeds() {
  if(pid > 0) {
    leftSpeed = (int) (pid/20); 
+   rightSpeed = 1;
  } else if(pid < 0) {
    rightSpeed = (int) (pid*-1/20);
+   leftSpeed = 1;
  } else {
    leftSpeed = 1;
    rightSpeed = 1;
