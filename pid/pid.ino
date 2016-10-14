@@ -10,26 +10,34 @@ Adafruit_DCMotor *left = AFMS.getMotor(3);
 Adafruit_DCMotor *right = AFMS.getMotor(4);
 
 // vRef used in subtractor circuit
-const double REF = 2.88;
+const double REF = 2.92;
 
 // pins
-int reflectancePin = A2;
+int reflectancePin = A3;
+int refPin = A5;
 double err = 0;
 
 // debouncing
 unsigned long counter = 0;
-const unsigned long SAMPLING_RATE = 20;
+const unsigned long SAMPLING_RATE = 50;
+
+// voltage reading
+double refVolt = 0;
+double senseVolt = 0;
 
 // speed calculation
-int baseSpeed = 30;
-int leftWheelError = 10;
+int baseSpeed = 20;
+int leftWheelError = 0;
+int rightWheelError = 10;
 uint8_t leftSpeed = 1, rightSpeed = 1;
-int scaling = 12;
+int scaling = 15;
+double tolerance = 0.03;
 
 void setup() {
   Serial.begin(9600);
   
   pinMode(reflectancePin, INPUT);
+  pinMode(refPin, INPUT);
   
   AFMS.begin();
   
@@ -47,24 +55,31 @@ void loop() {
     //sampling = (int) Serial.readStringUntil(',').toFloat();
   }
   
+  Serial.println(senseVolt);
+  
   if(millis() - counter >= SAMPLING_RATE) {
-    err = analogRead(reflectancePin) - REF;
+    counter = millis();
+    refVolt = (analogRead(refPin)*5.0/1023);
+    senseVolt = (analogRead(reflectancePin)*5.0/1023);
+    err = senseVolt-refVolt;
     scaleSpeeds();
     left->setSpeed((baseSpeed+leftWheelError) + leftSpeed);
-    right->setSpeed(baseSpeed + rightSpeed);
+    right->setSpeed((baseSpeed+rightWheelError) + rightSpeed);
+    
   }
 }
 
 // scaling
 void scaleSpeeds() {
  if(err > 0) {
-   leftSpeed = (int) ((err*10)/50)*scaling; 
-   rightSpeed = (int) ((err*-10)/50)*scaling;
+   leftSpeed = -1 * scaling; 
+   rightSpeed = scaling;
  } else if(err < 0) {
-   rightSpeed = (int) ((err*-10)/50)*scaling;
-   leftSpeed = (int) ((err*10)/50)*scaling;
+   leftSpeed = scaling;
+   rightSpeed = -1 * scaling;
+   // (int) ((err*-100)/50)*
  } else {
-   leftSpeed = 1;
-   rightSpeed = 1;
+   leftSpeed = 0;
+   rightSpeed = 0;
  } 
 }
