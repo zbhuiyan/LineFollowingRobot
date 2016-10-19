@@ -19,7 +19,7 @@ double err = 0;
 
 // debouncing
 unsigned long counter = 0;
-const unsigned long SAMPLING_RATE = 50;
+const unsigned long SAMPLING_RATE = 20;
 
 // voltage reading
 double refVolt = 0;
@@ -28,7 +28,7 @@ double senseVolt = 0;
 // speed calculation
 int baseSpeed = 20;
 int leftWheelError = 0;
-int rightWheelError = 10;
+int rightWheelError = 20;
 uint8_t leftSpeed = 1, rightSpeed = 1;
 int scaling = 15;
 double tolerance = 0.03;
@@ -49,13 +49,13 @@ void setup() {
 }
 
 void loop() {
-  if(Serial.available()) {
-    scaling = (int) Serial.readStringUntil(',').toFloat();
-    baseSpeed = (int) Serial.readStringUntil(',').toFloat();
-    //sampling = (int) Serial.readStringUntil(',').toFloat();
-  }
+//  if(Serial.available()) {
+//    scaling = (int) Serial.readStringUntil(',').toFloat();
+//    baseSpeed = (int) Serial.readStringUntil(',').toFloat();
+//    //sampling = (int) Serial.readStringUntil(',').toFloat();
+//}
   
-  Serial.println(senseVolt);
+  Serial.println(err);
   
   if(millis() - counter >= SAMPLING_RATE) {
     counter = millis();
@@ -75,7 +75,7 @@ void scaleSpeeds() {
    leftSpeed = -1 * scaling; 
    rightSpeed = scaling;
  } else if(err < 0) {
-   leftSpeed = scaling;
+   leftSpeed = scaling+10;
    rightSpeed = -1 * scaling;
    // (int) ((err*-100)/50)*
  } else {
